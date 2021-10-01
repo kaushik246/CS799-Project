@@ -88,14 +88,16 @@ class DataManager:
                     self.parsed_data.append(sensor_data)
         except FileNotFoundError:
             return False
-        acc_x_data = []
-        acc_y_data = []
-        acc_z_data = []
-        acc_data = pd.DataFrame()
+        acc_x_data, acc_y_data, acc_z_data = [], [], []
+        gyr_x_data, gyr_y_data, gyr_z_data = [], [], []
+        acc_data, gyr_data = pd.DataFrame(), pd.DataFrame()
         for sample in self.parsed_data:
             acc_x_data.append(sample['acc_x_1'])
             acc_y_data.append(sample['acc_y_1'])
             acc_z_data.append(sample['acc_z_1'])
+            gyr_x_data.append(sample['rot_x'])
+            gyr_y_data.append(sample['rot_y'])
+            gyr_z_data.append(sample['rot_z'])
         #plt.plot(acc_x_data)
         #plt.plot(acc_y_data)
         #plt.plot(acc_z_data)
@@ -108,15 +110,23 @@ class DataManager:
         acc_data['bx_2'] = acc_data['bx']**2
         acc_data['by_2'] = acc_data['by']**2
         acc_data['bz_2'] = acc_data['bz']**2
+
+        gyr_data['rot_x'] = pd.Series(gyr_x_data)**2
+        gyr_data['rot_y'] = pd.Series(gyr_y_data)**2
+        gyr_data['rot_z'] = pd.Series(gyr_z_data)**2
+
         j1 = acc_data['bx_2'] + acc_data['by_2'] + acc_data['bz_2']
-        filtered_data_x = self.butterworth_low_pass(acc_x_data, 5.0, 200.0, 4)
-        filtered_data_y = self.butterworth_low_pass(acc_y_data, 5.0, 200.0, 4)
-        filtered_data_z = self.butterworth_low_pass(acc_z_data, 5.0, 200.0, 4)
+        j2 = gyr_data['rot_x'] + gyr_data['rot_y'] + gyr_data['rot_z']
+        #plt.plot(j1)
+        #plt.show()
+
+        plt.plot(j2)
+        plt.show()
         #print(acc_data)
         #plt.plot(acc_data['bx'])
         #plt.plot(acc_data['by'])
         #plt.plot(acc_data['bz'])
-        self.max_val = j1.max()
+        self.max_val = math.sqrt(j1.max())
         return True
         #plt.plot(j1)
         #plt.plot(acc_x_data)
@@ -171,7 +181,6 @@ class DataManager:
         return (P[0], E[0])
     '''
 
-
 fall = False
 for k in range(1, 6):
     trial = '_R0' + str(k) + '.txt'
@@ -182,7 +191,7 @@ for k in range(1, 6):
         else:
             person += str(j)
         for i in range(1, 16):
-            for type in ['F', 'D']:
+            for type in ['D']:
                 post_fix = '_' + person + trial
                 if type == 'F':
                     fall = True
