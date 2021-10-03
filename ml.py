@@ -172,6 +172,8 @@ class DataManager:
         y = lfilter(b, a, data)
         return y
 
+
+# Start
 features = []
 fall = False
 for k in range(1, 6):
