@@ -34,6 +34,8 @@ class DataManager:
         self.params = []
         self.threshold = 600
         self.acc_1_factor = (2*16)/(2**13)
+        self.gyro_factor = (2*2000)/(2**16)
+        self.acc_2_factor = (2*8)/(2**14)
         self.sis_params = {
             0: 'acc_x_1',
             1: 'acc_y_1',
@@ -65,6 +67,10 @@ class DataManager:
                         sensor_data[self.sis_params[i]] = int(formatted_sample)
                         if i in [0, 1, 2]:
                             sensor_data[self.sis_params[i]] = self.acc_1_factor*sensor_data[self.sis_params[i]]
+                        elif i in [3, 4, 5]:
+                            sensor_data[self.sis_params[i]] = self.gyro_factor*sensor_data[self.sis_params[i]]
+                        elif i in [6, 7, 8]:
+                            sensor_data[self.sis_params[i]] = self.acc_2_factor*sensor_data[self.sis_params[i]]
                     self.parsed_data.append(sensor_data)
         except FileNotFoundError:
             return {}, False
@@ -80,6 +86,9 @@ class DataManager:
             gyr_x_data.append(sample['rot_x'])
             gyr_y_data.append(sample['rot_y'])
             gyr_z_data.append(sample['rot_z'])
+            acc2_x_data.append(sample['acc_x_2'])
+            acc2_y_data.append(sample['acc_y_2'])
+            acc2_z_data.append(sample['acc_z_2'])
 
         acc_data['fx'] = pd.Series(self.butterworth_low_pass(acc_x_data, 5.0, 200.0, 4)).dropna()
         acc_data['fy'] = pd.Series(self.butterworth_low_pass(acc_y_data, 5.0, 200.0, 4)).dropna()
@@ -88,6 +97,10 @@ class DataManager:
         gyr_data['fx'] = pd.Series(gyr_x_data).dropna()
         gyr_data['fy'] = pd.Series(gyr_y_data).dropna()
         gyr_data['fz'] = pd.Series(gyr_z_data).dropna()
+
+        acc2_data['fx'] = pd.Series(self.butterworth_low_pass(acc2_x_data, 5.0, 200.0, 4)).dropna()
+        acc2_data['fy'] = pd.Series(self.butterworth_low_pass(acc2_y_data, 5.0, 200.0, 4)).dropna()
+        acc2_data['fz'] = pd.Series(self.butterworth_low_pass(acc2_z_data, 5.0, 200.0, 4)).dropna()
 
         feature_dict = {}
 
@@ -113,6 +126,28 @@ class DataManager:
         feature_dict['kurtosis_z'] = self.get_kurtosis(acc_data['fz'])
         feature_dict['skew_z'] = self.get_skew(acc_data['fz'])
 
+        # Accelerometer 2 Data
+        feature_dict['max_amp_x_2'] = np.max(acc2_data['fx'])
+        feature_dict['min_amp_x_2'] = np.min(acc2_data['fx'])
+        feature_dict['mean_amp_x_2'] = np.mean(acc2_data['fx'])
+        feature_dict['variance_x_2'] = np.var(acc2_data['fx'])
+        feature_dict['kurtosis_x_2'] = self.get_kurtosis(acc2_data['fx'])
+        feature_dict['skew_x_2'] = self.get_skew(acc2_data['fx'])
+
+        feature_dict['max_amp_y_2'] = np.max(acc2_data['fy'])
+        feature_dict['min_amp_y_2'] = np.min(acc2_data['fy'])
+        feature_dict['mean_amp_y_2'] = np.mean(acc2_data['fy'])
+        feature_dict['variance_y_2'] = np.var(acc2_data['fy'])
+        feature_dict['kurtosis_y_2'] = self.get_kurtosis(acc2_data['fy'])
+        feature_dict['skew_y_2'] = self.get_skew(acc2_data['fy'])
+
+        feature_dict['max_amp_z_2'] = np.max(acc2_data['fz'])
+        feature_dict['min_amp_z_2'] = np.min(acc2_data['fz'])
+        feature_dict['mean_amp_z_2'] = np.mean(acc2_data['fz'])
+        feature_dict['variance_z_2'] = np.var(acc2_data['fz'])
+        feature_dict['kurtosis_z_2'] = self.get_kurtosis(acc2_data['fz'])
+        feature_dict['skew_z_2'] = self.get_skew(acc2_data['fz'])
+
         # Gyro Data
         feature_dict['max_rot_x'] = np.max(gyr_data['fx'])
         feature_dict['min_rot_x'] = np.min(gyr_data['fx'])
@@ -137,14 +172,6 @@ class DataManager:
 
         feature_dict['result'] = 1 if self.fall else 0
         return feature_dict, True
-        #plt.plot(j1)
-        plt.plot(acc_data['fx'])
-        plt.plot(acc_data['fy'])
-        plt.plot(acc_data['fz'])
-        #plt.plot(filtered_data_z)
-        #plt.show()
-        #print(filtered_data)
-        #plt.show()
 
     def get_kurtosis(self, data):
         return self.get_n_moment(data, 4)/(np.var(data)**2)
@@ -178,7 +205,7 @@ features = []
 fall = False
 for k in range(1, 6):
     trial = '_R0' + str(k) + '.txt'
-    for j in range(1, 16):
+    for j in range(1, 24):
         persons = ['SA', 'SE']
         for person in persons:
             if j < 10:
@@ -186,7 +213,7 @@ for k in range(1, 6):
             else:
                 person += str(j)
             for i in range(1, 18):
-                for type in ['F']:
+                for type in ['F', 'D']:
                     post_fix = '_' + person + trial
                     if type == 'F':
                         fall = True
@@ -206,23 +233,26 @@ for k in range(1, 6):
 
 features_mat = pd.DataFrame(features)
 y = np.array(features_mat['result'])
-print(len(y))
+#print(len(y))
 
 x = features_mat.drop(columns='result').to_numpy()
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, shuffle=True)
 
 from sklearn.neighbors import KNeighborsClassifier
 
-knn_cv = KNeighborsClassifier(n_neighbors=5)
-cv_scores = cross_val_score(knn_cv, x, y, cv=10)
-print("KNN", mean(cv_scores))
 
-cv = KFold(n_splits=10, random_state=1, shuffle=True)
-classifier = svm.SVC(kernel='rbf')
-scores = cross_val_score(classifier, x, y, scoring='accuracy', cv=cv, n_jobs=1)
-print("SVM", mean(scores))
+for n_neighbor in [5, 7, 10, 12, 15]:
+    knn_cv = KNeighborsClassifier(n_neighbors=n_neighbor)
+    cv_scores = cross_val_score(knn_cv, x, y, cv=10, n_jobs=-1)
+    print("KNN", mean(cv_scores), n_neighbor)
 
 
+#cv = KFold(n_splits=10, random_state=1, shuffle=True)
+#classifier = svm.SVC(kernel='poly', degree=3)
+#scores = cross_val_score(classifier, x, y, scoring='accuracy', cv=cv, n_jobs=1)
+#print("SVM", mean(scores))
+
+'''
 match = 0
 mismatch = 0
 for i in range(len(y_test)):
@@ -242,3 +272,4 @@ print(match, mismatch)
 
 #data = DataManager('F08_SA01_R01.txt')
 #data.get_sis_fall_params()
+'''
