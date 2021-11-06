@@ -40,6 +40,7 @@ class DataManager:
         self.acc_1_factor = (2*16)/(2**13)
         self.acc_2_factor = (2*8)/(2**14)
         self.gyr_factor = (2*2000)/2**16
+        self.align = align
 
         self.sis_params = {
             0: 'acc_x_1',
@@ -114,7 +115,7 @@ class DataManager:
             acc2_y_data.append(sample['acc_y_2'])
             acc2_z_data.append(sample['acc_z_2'])
         # print(acc_x_data)
-        if align:
+        if self.align:
           acc_x_data =  self.align_data(501,acc_x_data)
           acc_y_data = self.align_data(501,acc_y_data)
           acc_z_data= self.align_data(501,acc_z_data)
