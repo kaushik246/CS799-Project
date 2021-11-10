@@ -21,8 +21,6 @@ from numpy import std
 from MobiAct import MobiActDataParser
 from SisFall import SisFallDataParser
 
-
-
 class DataManagerFinal:
     def __init__(self, mobi_act=False, sis_fall=True, features=True):
         self.mobi_act = mobi_act

@@ -36,7 +36,7 @@ class MobiActDataParser:
                 for fall in self.falls:
                     label = True
                     filename = fall + '_' + str(participant) + '_' + str(trial) + '_annotated.csv'
-                    parserObj = MobiActDataManager(filename, self.dir_path + fall + '/', label)
+                    parserObj = MobiActDataManager(filename, self.dir_path + fall + '/', label, self.features)
                     feature, found = parserObj.read_data()
                     if found:
                         self.data.append(feature)
@@ -53,10 +53,11 @@ class MobiActDataParser:
 
 
 class MobiActDataManager:
-    def __init__(self, filename, filepath, label):
+    def __init__(self, filename, filepath, label, features):
         self.filename = filename
         self.filepath = filepath
         self.label = label
+        self.features = features
 
     def read_data(self):
         try:
@@ -71,6 +72,17 @@ class MobiActDataManager:
             acc_x_data, acc_y_data, acc_z_data = csv_data['acc_x'].to_numpy(), csv_data['acc_y'].to_numpy(), csv_data['acc_z'].to_numpy()
             gyr_x_data, gyr_y_data, gyr_z_data = csv_data['gyro_x'].to_numpy(), csv_data['gyro_y'].to_numpy(), csv_data['gyro_z'].to_numpy()
             acc_data, gyr_data, acc2_data = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+
+            if not self.features:
+                main_data = pd.DataFrame()
+                main_data['acc_x'] = pd.Series(acc_x_data).dropna()
+                main_data['acc_y'] = pd.Series(acc_y_data).dropna()
+                main_data['acc_z'] = pd.Series(acc_z_data).dropna()
+
+                main_data['rot_x'] = pd.Series(gyr_x_data).dropna()
+                main_data['rot_y'] = pd.Series(gyr_y_data).dropna()
+                main_data['rot_z'] = pd.Series(gyr_z_data).dropna()
+                return main_data, True
 
             acc_data['fx'] = pd.Series(self.butterworth_low_pass(acc_x_data, 5.0, 200.0, 4)).dropna()
             acc_data['fy'] = pd.Series(self.butterworth_low_pass(acc_y_data, 5.0, 200.0, 4)).dropna()

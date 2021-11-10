@@ -50,7 +50,7 @@ class SisFallDataParser:
                                 if not self.features:
                                     data, found = data.get_sis_fall_params()
                                     if found:
-                                        self.data.append(feature)
+                                        self.data.append(data)
                                 else:
                                     feature, found = data.get_sis_fall_params()
                                     if found:
@@ -123,7 +123,7 @@ class SisFallDataManager:
             main_data['rot_x'] = pd.Series(gyr_x_data).dropna()
             main_data['rot_y'] = pd.Series(gyr_y_data).dropna()
             main_data['rot_z'] = pd.Series(gyr_z_data).dropna()
-            return True, main_data
+            return main_data, True
 
         else:
             acc_data, gyr_data = pd.DataFrame(), pd.DataFrame()
@@ -204,7 +204,3 @@ class SisFallDataManager:
         b, a = butter(order, normal_cutoff, btype='low', analog=False)
         y = lfilter(b, a, data)
         return y
-
-obj = SisFallDataParser('/Users/kaushikkota/ms_cs_uw_madison/cs_799/CS799-Project/SisFall_dataset/', False)
-print(obj.fetch_data())
-
