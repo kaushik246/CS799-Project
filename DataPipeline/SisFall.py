@@ -51,7 +51,6 @@ class SisFallDataParser:
                                     data, found = data.get_sis_fall_params()
                                     if found:
                                         self.data.append([data, fall])
-                                        break
                                 else:
                                     feature, found = data.get_sis_fall_params()
                                     if found:

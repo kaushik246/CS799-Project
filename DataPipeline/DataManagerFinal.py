@@ -45,5 +45,5 @@ class DataManagerFinal:
             self.data += parser_obj.fetch_data()
         return self.data
 
-obj = DataManagerFinal(features=False)
+obj = DataManagerFinal(features=False, mobi_act=True, sis_fall=False)
 data = obj.fetch_data()
