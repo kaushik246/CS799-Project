@@ -44,3 +44,6 @@ class DataManagerFinal:
             parser_obj = SisFallDataParser(dir_path=self.sis_path, features=self.features)
             self.data += parser_obj.fetch_data()
         return self.data
+
+obj = DataManagerFinal(features=False)
+data = obj.fetch_data()
