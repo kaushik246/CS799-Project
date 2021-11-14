@@ -37,18 +37,28 @@ class MobiActDataParser:
                     label = True
                     filename = fall + '_' + str(participant) + '_' + str(trial) + '_annotated.csv'
                     parserObj = MobiActDataManager(filename, self.dir_path + fall + '/', label, self.features)
-                    feature, found = parserObj.read_data()
-                    if found:
-                        self.data.append(feature)
-                    break
+
+                    if self.features:
+                        feature, found = parserObj.read_data()
+                        if found:
+                            self.data.append(feature)
+                    else:
+                        data, found = parserObj.read_data()
+                        if found:
+                            self.data.append([data, label])
 
                 for adl in self.adls:
                     label = False
                     filename = adl + '_' + str(participant) + '_' + str(trial) + '_annotated.csv'
-                    parserObj = MobiActDataManager(filename, dirpath + adl + '/', label)
-                    feature, found = parserObj.read_data()
-                    if found:
-                        self.data.append(feature)
+                    parserObj = MobiActDataManager(filename, dirpath + adl + '/', label, True)
+                    if self.features:
+                        feature, found = parserObj.read_data()
+                        if found:
+                            self.data.append(feature)
+                    else:
+                        data, found = parserObj.read_data()
+                        if found:
+                            self.data.append([data, label])
         return self.data
 
 
