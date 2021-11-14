@@ -25,16 +25,16 @@ class SisFallDataParser:
         self.data = []
 
     def fetch_data(self):
-        for k in range(1, 2): # 6
+        for k in range(1, 6): # 6
             trial = '_R0' + str(k) + '.txt'
-            for j in range(1, 2):
+            for j in range(1, 24):
                 persons = ['SA', 'SE']
                 for person in persons:
                     if j < 10:
                         person += '0' + str(j)
                     else:
                         person += str(j)
-                    for i in range(1, 2):
+                    for i in range(1, 18):
                         for type in ['F', 'D']:
                             post_fix = '_' + person + trial
                             if type == 'F':
@@ -46,7 +46,7 @@ class SisFallDataParser:
                             else:
                                 filename = type + str(i) + post_fix
                             try:
-                                data = SisFallDataManager(filename, self.dir_path, i, person, fall)
+                                data = SisFallDataManager(filename, self.dir_path, i, person, fall, self.features)
                                 if not self.features:
                                     data, found = data.get_sis_fall_params()
                                     if found:
@@ -61,7 +61,8 @@ class SisFallDataParser:
 
 
 class SisFallDataManager:
-    def __init__(self, filename, dir_path, index, person, fall):
+    def __init__(self, filename, dir_path, index, person, fall, features):
+        print(filename)
         self.filename = filename
         self.dir_path = dir_path
         self.index = index
@@ -70,6 +71,7 @@ class SisFallDataManager:
         self.parsed_data = []
         self.acc_1_factor = (2*16)/(2**13)
         self.gyro_factor = (2*2000)/(2**16)
+        self.features = features
         self.sis_params = {
             0: 'acc_x_1',
             1: 'acc_y_1',

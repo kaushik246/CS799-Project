@@ -50,7 +50,7 @@ class MobiActDataParser:
                 for adl in self.adls:
                     label = False
                     filename = adl + '_' + str(participant) + '_' + str(trial) + '_annotated.csv'
-                    parserObj = MobiActDataManager(filename, dirpath + adl + '/', label, True)
+                    parserObj = MobiActDataManager(filename, self.dir_path + adl + '/', label, self.features)
                     if self.features:
                         feature, found = parserObj.read_data()
                         if found:
@@ -92,6 +92,7 @@ class MobiActDataManager:
                 main_data['rot_x'] = pd.Series(gyr_x_data).dropna()
                 main_data['rot_y'] = pd.Series(gyr_y_data).dropna()
                 main_data['rot_z'] = pd.Series(gyr_z_data).dropna()
+                print(main_data)
                 return main_data, True
 
             acc_data['fx'] = pd.Series(self.butterworth_low_pass(acc_x_data, 5.0, 200.0, 4)).dropna()
