@@ -22,11 +22,13 @@ from MobiAct import MobiActDataParser
 from SisFall import SisFallDataParser
 
 class DataManagerFinal:
-    def __init__(self, mobi_act=False, sis_fall=True, features=True):
+    def __init__(self, mobi_act=False, sis_fall=True, mbient=True, features=True):
         self.mobi_act = mobi_act
         self.sis_fall = sis_fall
+        self.mbient = mbient
         self.sis_path = '/Users/kaushikkota/ms_cs_uw_madison/cs_799/CS799-Project/SisFall_dataset/'
         self.mobi_path = '/Users/kaushikkota/ms_cs_uw_madison/cs_799/CS799-Project/MobiAct_Dataset_v2.0/AnnotatedData/'
+        self.mbient_path = '/home/pramodbs/799/MbientData/'
 
         if features:
             self.features = True
@@ -43,7 +45,10 @@ class DataManagerFinal:
         if self.sis_fall:
             parser_obj = SisFallDataParser(dir_path=self.sis_path, features=self.features)
             self.data += parser_obj.fetch_data()
+        if self.mbient:
+            parser_obj = MbientDataParser(dir_path=self.mbient_path, features=self.features)
+            self.data += parser_obj.fetch_data()
         return self.data
 
-obj = DataManagerFinal(features=False, mobi_act=True, sis_fall=False)
+obj = DataManagerFinal(features=False, mobi_act=True, sis_fall=False, mbient=True)
 data = obj.fetch_data()
