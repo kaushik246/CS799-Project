@@ -45,8 +45,8 @@ class MbientDataParser:
 
                 for adl in self.adls:
                     label = False
-                    accfilename = fall + '_' + str(participant) + '_' + str(trial) + '_acc.csv'
-                    gyrfilename = fall + '_' + str(participant) + '_' + str(trial) + '_gyr.csv'
+                    accfilename = adl + '_' + str(participant) + '_' + str(trial) + '_acc.csv'
+                    gyrfilename = adl + '_' + str(participant) + '_' + str(trial) + '_gyr.csv'
                     parserObj = MbientDataManager(accfilename, gyrfilename, self.dir_path, label, self.features)
                     if self.features:
                         feature, found = parserObj.read_data()
@@ -70,11 +70,15 @@ class MbientDataManager:
     def read_data(self):
         try:
             acc_csv_data = pd.read_csv(self.filepath+self.accfilename)
+            invalid_idx = acc_csv_data.index[acc_csv_data['elapsed (s)'].astype(int) > 100].tolist()
+            acc_csv_data.drop(index = invalid_idx, inplace=True, axis=0)
             acc_csv_data.drop('epoch (ms)', inplace=True, axis=1)
             acc_csv_data.drop('time (-11:00)', inplace=True, axis=1)
             acc_csv_data.drop('elapsed (s)', inplace=True, axis=1)
 
             gyr_csv_data = pd.read_csv(self.filepath+self.gyrfilename)
+            invalid_idx_2 = gyr_csv_data.index[gyr_csv_data['elapsed (s)'].astype(int) > 100].tolist()
+            gyr_csv_data.drop(index = invalid_idx_2, inplace=True, axis=0)
             gyr_csv_data.drop('epoch (ms)', inplace=True, axis=1)
             gyr_csv_data.drop('time (-11:00)', inplace=True, axis=1)
             gyr_csv_data.drop('elapsed (s)', inplace=True, axis=1)
